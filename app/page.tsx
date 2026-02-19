@@ -1,65 +1,157 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+
+export default function AttireSensePage() {
+  const [image, setImage] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const [mode, setMode] = useState<"bg" | "tryon" | "rec">("bg");
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+    const previewUrl = URL.createObjectURL(file);
+    setImage(previewUrl);
+    setResult(null);
+  };
+
+  const handleProcess = (selectedMode: "bg" | "tryon" | "rec") => {
+    setMode(selectedMode);
+
+    setTimeout(() => {
+      setResult(image); // Replace with backend output later
+    }, 700);
+  };
+
+  // For demo: fake recommendation images (using uploaded image)
+  const recommendations = image
+    ? [image, image, image, image, image]
+    : [];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="min-h-screen bg-gray-100">
+
+      {/* HEADER */}
+      <div className="w-full bg-black py-4 px-8">
+        <h1 className="text-2xl font-semibold text-white">
+          AttireSense
+        </h1>
+      </div>
+
+      {/* MAIN */}
+      <div className="px-12 py-14">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+
+          {/* UPLOAD BOX */}
+          <label className="h-[420px] border-2 border-dashed border-gray-500 rounded-xl flex items-center justify-center cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleUpload}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            {image ? (
+              <img
+                src={image}
+                alt="Uploaded"
+                className="h-full object-contain p-6"
+              />
+            ) : (
+              <div className="text-gray-500 text-center">
+                <p className="text-lg">Click to Upload</p>
+                <p className="text-sm">or Drag & Drop</p>
+              </div>
+            )}
+          </label>
+
+          {/* OUTPUT BOX */}
+          <div className="relative h-[420px] border-2 border-dashed border-gray-500 rounded-xl flex items-center justify-center overflow-hidden">
+
+            {/* Recommendation Mode */}
+            {mode === "rec" && recommendations.length > 0 ? (
+              <>
+                <div className="flex gap-6 overflow-x-auto p-6 w-full">
+                  {recommendations.map((img, index) => (
+                    <img
+                      key={index}
+                      src={img}
+                      alt={`Recommendation ${index + 1}`}
+                      className="min-w-[200px] h-[300px] object-contain bg-gray-200 rounded-lg"
+                    />
+                  ))}
+                </div>
+
+                {/* Download All */}
+                <button
+                  onClick={() => {
+                    recommendations.forEach((img, index) => {
+                      const link = document.createElement("a");
+                      link.href = img;
+                      link.download = `recommendation_${index + 1}.png`;
+                      link.click();
+                    });
+                  }}
+                  className="absolute bottom-4 right-4 bg-gray-900 text-white px-5 py-2 rounded-md hover:bg-black transition"
+                >
+                  Download All
+                </button>
+              </>
+            ) : result ? (
+              <>
+                <img
+                  src={result}
+                  alt="Result"
+                  className="h-full object-contain p-6"
+                />
+
+                {/* Download Single */}
+                <a
+                  href={result}
+                  download="output.png"
+                  className="absolute bottom-4 right-4 bg-gray-900 text-white px-5 py-2 rounded-md hover:bg-black transition"
+                >
+                  Download
+                </a>
+              </>
+            ) : (
+              <span className="text-gray-400 text-lg">
+                Inspired styles coming your way
+              </span>
+            )}
+          </div>
         </div>
-      </main>
+
+        {/* BUTTONS */}
+        <div className="flex justify-center gap-10 mt-14">
+
+          <button
+            onClick={() => handleProcess("bg")}
+            disabled={!image}
+            className="px-8 py-3 bg-gray-900 text-white rounded-md hover:bg-black transition disabled:opacity-40"
+          >
+            BACKGROUND REMOVE
+          </button>
+
+          <button
+            onClick={() => handleProcess("tryon")}
+            disabled={!image}
+            className="px-8 py-3 bg-gray-900 text-white rounded-md hover:bg-black transition disabled:opacity-40"
+          >
+            STYLE ME
+          </button>
+
+          <button
+            onClick={() => handleProcess("rec")}
+            disabled={!image}
+            className="px-8 py-3 bg-gray-900 text-white rounded-md hover:bg-black transition disabled:opacity-40"
+          >
+            RECOMMENDATION
+          </button>
+
+        </div>
+      </div>
     </div>
   );
 }
